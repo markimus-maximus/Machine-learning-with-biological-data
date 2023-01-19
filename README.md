@@ -45,4 +45,35 @@ Splitting data into discrete groups ahead of model training ensures that the mod
 
 ### Generating and training the model
 
+The `create_dataloader` function was created to batch feed the model data. To achieve this the class `ProteinSeqDataset` described above was used, as well as the `Dataloader` class from PyTorch. 
+
+Given that the sequences are 1 dimensional, 1d convolutional layers were selected for the nerual network. The preliminary architecture of the model for screening purposes comprised of 2x 1dconvoluted layes, 1x maxpool layer (max 30), and a fully connected linear regression layer. The code including activator functions is shown below.
+
+~~~
+def __init__(self):
+        super().__init__()
+        #define layers
+        self.layers = torch.nn.Sequential(
+            #changed to 1d as not an image. Num channels, num outputs
+            torch.nn.Conv1d(1, 4, 200),
+            torch.nn.ReLU(),
+            torch.nn.Conv1d(4, 8, 50),
+            torch.nn.MaxPool1d(30, 30),
+            #This is important.
+            torch.nn.Flatten(),
+            # LazyLinear removes need for manual calculations of input from the flattened layer
+            torch.nn.LazyLinear(5),
+            torch.nn.Softmax()
+        )
+    #define how to stack the different elements of the network together
+    def forward(self, X):
+            return self.layers(X)
+~~~
+
+To iteratively train the model, the `train_protein_seq_nn(model, num_epochs:int, name_writer:str, dataloader, lr, optimiser)` function was coded. `torch.unsqueeze` was used to get the feature `Tensor` in the right shape for calculating loss. This function uses `cross_entropy` as the criterion to iteratively optimise the model. The loss of the final 30 iterations of the model are taken as an average to calculate the training loss, reflecting loss at the most optimised point in the training process. `Tensorboard` is used in this function to monitor the training process in real time. This function returns a tuple containing `training_metrics` which is a dictionary containing the training duration and the average loss, and `model_parameters` which is a dictionary which contains the model and optimiser state parameters.
+
+### Evaluating and optimising the model
+
+In order to assess applicability of the model, unseen datasets were used to evaluate the model (generated with a separate dataloader instance). As with the training metrics, the criterion for loss for evaluating the model was generated with `cross_entropy`. A helper function `multiclass_accuracy` was generated to calculate the accuracy of the model in making predictions from the validation and testing datasets. The evaluation function provides optional additional functionality should the user want to include a testing dataset also. The function returns a dictionary of performance metrics which contain the mean loss and accuracy for the validation dataset and, optionally, the testing dataset.
+
 ## Predicting cell types from images
