@@ -81,6 +81,8 @@ To iteratively train the model, the `train_protein_seq_nn(model, num_epochs:int,
 
 In order to assess applicability of the model, unseen datasets were used to evaluate the model (generated with a separate dataloader instance). As with the training metrics, the criterion for loss for evaluating the model was generated with `cross_entropy`. A helper function `multiclass_accuracy` was generated to calculate the accuracy of the model in making predictions from the validation and testing datasets. The evaluation function provides optional additional functionality should the user want to include a testing dataset also. The function returns a dictionary of performance metrics which contain the mean loss and accuracy for the validation dataset and, optionally, the testing dataset. The evaluation metrics also contain the mean inference latency (time taken to evaluate the loss and accuracy).
 
+In addition to generating evaluation metrics, a confusion matrix is also generated with each evaluation. This ws achieved by writing `confusion_matrix_auto(y_true, y_pred, file_name)`. The `np.arg_max` was built into the evaluation method to return the index of both the labels and predictions, with which to update the confusion matrix. This function uses the `sk-learn` `confusion_matrix` method to compute the confusion matrix. A directory is provided to save the confusion matrix. 
+
 In the first instance, the model was optimised by varying hyperparameters to identify those which return the best evaluation metrics. A quick broad scan of learning rate showed that ~0.1 was the best for this approach, and this was used as a preliminary learning rate for hyperparameter screening (to reduce the number of combinations of hyperparameters). The `generate_nn_config` function was coded to return a list of dictionaries with which to iterate through, with each dictionary containing a unique combination of the hyperparameters. The hyperparameters assessed were the the protein length fed into the model (100 and 300 amino acid length) the batch size (25, 60, 100), and the kernel sizes ([200, 200], [200, 100], [200, 50], [100, 100], [100, 50]). The function `hyperparameter_screen` was coded to bring together all of the above functionality and allow for iterative execution of the functionality with respect to each unique hyperparameter combination. After each iteration, the training metric dictionary, model and optimisation parameters dicitionary, and evaluation metrics dictionary were saved as json files and named to include the date and time, using the `save_nn_model` function. Simimlarly the model data were saved with this function. Finally, an aggregated dictionary of all of the evaluation metrics was generated in order to easily extract and compare the data after all of the vombinations of hyperparameters had been carried out. 
 
 After screening the different hyperparameters, the data for the hyperparameters with the top 10 cross entropy scores were displayed (below).
@@ -117,9 +119,69 @@ Neurons
 
 ### Generating utility functions to prepare images for model
 
-The file names and associated categories were first added to a .csv file. This file was then fed into the  `split_data_into_dataset(path_to_csv, train_to_dev_ratio,  val_to_test_ratio)` function which takes these data and, using pd.dataframe.sample, randomly shuffles the data. The data are then split into the train, val and test datasets according to the `train_to_dev_ratio` and `val_to_test_ratio` arguments. The function then generates .csv files for each of the datasets. 
+The file names and associated categories were first added to a .csv file. This file was then fed into the  `split_data_into_dataset(path_to_csv, train_to_dev_ratio,  val_to_test_ratio)` function which takes these data and, using `pd.dataframe.sample`, randomly shuffles the data. The data are then split into the train, val and test datasets according to the `train_to_dev_ratio` and `val_to_test_ratio` arguments. The function then generates .csv files for each of the datasets. 
 
-Once the names and categories of the images had been split, the images themselves required splitting in the same manner. To achieve this, `partition_images(source_folder, destination_folder, data_file_directory)`was written. A .csv file corresponding to one of the datasets is used as a reference image name list
+Once the names and categories of the images had been split, the images themselves required splitting in the same manner. To achieve this, `partition_images(source_folder, destination_folder, data_file_directory)`was written. A .csv file corresponding to one of the datasets (generated above) is used as a reference image name list. The images are only copied to the destination folder if the name of the image is found in the reference dataset. 
+
+### Creating an iterable dataset for feeding the model
+
+In order to train the model, the dataset prepared above needs to be made into a class which returns its len and allows for indexing. This was more involved for images than for tabular data (above). See the code below.
+
+~~~
+class CellImageDataset(Dataset):
+    def __init__(self, csv_file, root_dir, transform=None):
+        """
+        Args:
+            csv_file (string): Path to the csv file with annotations.
+            root_dir (string): Directory with all the images.
+            transform (callable, optional): Optional transform to be applied
+                on a sample.
+        """
+        self.classes = pd.read_csv(csv_file)
+        self.root_dir = root_dir
+        self.transform = transform
+
+    def __len__(self):
+        return len(self.classes)
+
+    def __getitem__(self, idx):
+        if torch.is_tensor(idx):
+            idx = idx.tolist()
+
+        img_name = os.path.join(self.root_dir,
+                                self.classes.iloc[idx, 0])
+        image = cv2.imread(img_name)
+        image = Image.fromarray(np.uint8(image))
+        label = self.classes.iloc[idx, 1:]
+        label = np.array([label])
+        label = torch.tensor(label.reshape(-1).tolist())
+        if self.transform:
+            image = self.transform(image)
+            image = torch.Tensor.double(image)
+        return image, label
+~~~
+Due to the image data being multiple files instead of one file as with tabular data, the containing folder of the images is required, as well as the name of the file (in the respective .csv file). The image must also be read and converted to an array, then to a tensor. There is an option to transform the images. With these data, the images were resized, converted to grayscale and normalised using `transforms.Compose` as below.
+~~~
+transforms = T.Compose([
+                        T.Resize([62, 156]),
+                        T.Grayscale(),
+                        T.ToTensor(),
+                        T.Normalize((0.5, ), (0.5, ))
+                        ])
+~~~
+To get the lowest dimensions of the dataset with which to carry out the resizing, `get_lowest_image_dimensions_from_folder(original_image_folder_directory:str)` utility funtion was generated and utilised.
+
+### Generating, training and evaluating the model
+The architecture of the model is largely the same as the protein prediction architecture, except that 2d convolutional layers and maxpool were 2d instead of 1d. Equally, the code for the training loop and the evaluation was very similar to the protein prediction. 
+
+Training curves (below) show that there was a very good training loss generated from the training. Indeed, variations to the kernel size and learning rate resulted in 95 % accuracy from the validation set. The optimal conditions were a learning rate of 0.1 and kernel sizes of 8 for both convolutional layers (the green line below). 
+
+![image](https://user-images.githubusercontent.com/107410852/213882842-0c9735ad-f9c4-4474-81ca-fac1aec45bab.png)
+
+Predicting cell type from images was successful with little need for optimisations. An interesting follow up to this project would be to add yet more cell types into the dataset to really test the predictive power of the neural networks.
+
+
+
 
 
 
