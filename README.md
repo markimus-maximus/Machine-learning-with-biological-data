@@ -8,7 +8,12 @@ This project generated `PyTorch` convoluted neural networks to make predictions 
 
 ### Obtaining and preparing the dataset
 
-Data were downloaded from uniprot. The database selected for analysis was the complete human peptide list. From this database, 5 protein categories were chosen comprising of 736 sequences. The 5 categories selected are Tyrosine-protein kinase receptors (n=102), GTP-binding proteins (n=209), immunoglobulin heavy chains (n=134), histone H family proteins (n=216) and aquaporins (n=72).  Once the database was ready, it was necessary to convert the sequences into lists comprising of each element (amino acid residue), and additionally, to improve the potential applicability of the dataset each letter was assigned a numerical integer ranging from 1 to 20 (as below).
+Data were downloaded from uniprot. The database selected for analysis was the complete human peptide list. From this database, 5 protein categories were chosen comprising of 736 sequences. The 5 categories selected are Tyrosine-protein kinase receptors (n=102), GTP-binding proteins (n=209), immunoglobulin heavy chains (n=134), histone H family proteins (n=216) and aquaporins (n=72). See image below for screenshot of the dataset
+
+![image](https://user-images.githubusercontent.com/107410852/213874794-da1fa551-65b6-4003-b3fe-4a76f8120c3a.png)
+
+
+Once the database was ready, it was necessary to convert the sequences into lists comprising of each element (amino acid residue), and additionally, to improve the potential applicability of the dataset each letter was assigned a numerical integer ranging from 1 to 20 (as below).
 `char_dict = {'A': 1, 'G': 2, 'I': 3, 'L': 4, 'M': 5, 'W': 6, 'F': 7, 'P': 8, 'V': 9, 'C': 10, 'S': 11, 'T': 12, 'Y': 13, 'N': 14, 'Q': 15, 'H': 16, 'K': 17, 'R': 18, 'D': 19, 'E': 20}`
 
 The numerical conversion and conversion to list was carried out with the `return_encoded_protein_list(seq)` function which takes a protein sequence (seq) as a string argument. These data were then saved as a .csv file ("Prepped data.csv").
@@ -81,15 +86,34 @@ In the first instance, the model was optimised by varying hyperparameters to ide
 After screening the different hyperparameters, the data for the hyperparameters with the top 10 cross entropy scores were displayed (below).
 ![image](https://user-images.githubusercontent.com/107410852/213686575-18733a49-6b19-454d-9450-6ac18fb167d6.png)
 
+A graph of all of the learning curves for the optimisation step is shown below:
+![image](https://user-images.githubusercontent.com/107410852/213875710-8c2b99df-385d-4d3f-aa7a-465b6dcbbe45.png)
+
 In general, the best performing models were generating a ~65 % accuracy on the validation dataset, which is promising for a first pass attempt. For all models there was evidently an element of overfitting, as the accuracy for the training set was around maximum. Some regularisation approaches could be useful for future additions.
 
-In terms of optimal hyperparameters, the top 10 performing models were again analysed. In terms of protein length and batch size there was not a clear trend. The kernel sizes were however more likely to impact the high performers, with 5/10 of the top-performing models having kernel sizes [100, 100]. 
+In terms of optimal hyperparameters, for protein length and batch size there was not a clear trend. The kernel sizes were, however, more likely to impact the high performers, with 5/10 of the top-performing models having kernel sizes [100, 100]. 
 
 ![image](https://user-images.githubusercontent.com/107410852/213687931-a4ab465f-0fbc-4a57-9d34-6d9ba9f4fa94.png)
 
 The kernel values of [100,100] will be used as a basis for future tests. Future optimisations will seek to understand the effect of variations to learning rate and neural network architecture.
 
+After reloading the best performing model, a confusion matrix was generated from the validation dataset, which showed that for each category, the correct choice was selected the most. The model performed particularly well in predicting immunoglobulins, probably because there are highly conserved canonical sequences in this family. The tyrosine kinase receptor and Histone H sequences were also well-predicted. A poorly predicted category was the aquaporins, however, this was the smallest set of data used to train the model, which may have contributed to this.  Nonetheless, this category were still predicted correctly 50 % of the time, which is not bad for a first pass. GTP-binding proteins were the poorest predicted of all the categories, pointing to non-canonical sequence structures. 
 
+![protein_pred_first_pass](https://user-images.githubusercontent.com/107410852/213874133-0f2332e1-3103-4e5f-939b-8dbd4e55e6ac.png)
 
+### Future optimisations and concluding remarks
+
+Considering the model architecture was quite narrow with two convolutional layers, this could be an area to improve for future optimisation rounds. Indeed, other approaches in the literature for making predictions from protein sequences used 10 convoluted networks. Fine-tuning of the learning rate could also be an avenue for improvement. Due to the GPU of the laptop used for the modelling, the sequence length possible to plug into the model was quite limited to 600 residues without crashing the machine. An ability to increase the protein length to greater than 600 residues could well improve the predictive power of models, particularly for proteins with canonical sequences towards the end of the proteins. There was a clear amount of overfitting occurring, so early stopping of the training, informed by the learning curves, could be an approach to reduce this. Despite the areas for improvement, for a first pass gaining an accuracy of ~65 % for this problem seems encouraging.
 
 ## Predicting cell types from images
+
+This section of work aimed to generate 2d convoluted neural networks to make predictions of cell type based on images. A custom dataset of red blood cells and neurons was generated, containing 50 images each. Example images of each category are shown below:
+
+![image](https://user-images.githubusercontent.com/107410852/213875863-952a910d-4890-41f2-bf18-842cb5def346.png)
+Red blood cells
+
+![image](https://user-images.githubusercontent.com/107410852/213875896-6fb73d3e-5701-48db-9509-ed0e35e2e11e.png)
+Neurons
+
+
+
