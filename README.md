@@ -115,5 +115,13 @@ Red blood cells
 ![image](https://user-images.githubusercontent.com/107410852/213875896-6fb73d3e-5701-48db-9509-ed0e35e2e11e.png)
 Neurons
 
+### Generating utility functions to prepare images for model
+
+The file names and associated categories were first added to a .csv file. This file was then fed into the  `split_data_into_dataset(path_to_csv, train_to_dev_ratio,  val_to_test_ratio)` function which takes these data and, using pd.dataframe.sample, randomly shuffles the data. The data are then split into the train, val and test datasets according to the `train_to_dev_ratio` and `val_to_test_ratio` arguments. The function then generates .csv files for each of the datasets. 
+
+Once the names and categories of the images had been split, the images themselves required splitting in the same manner. To achieve this, `partition_images(source_folder, destination_folder, data_file_directory)`was written. A .csv file corresponding to one of the datasets is used as a reference image name list
+
+
+
 
 
