@@ -112,9 +112,11 @@ Considering the model architecture was quite narrow with two convolutional layer
 This section of work aimed to generate 2d convoluted neural networks to make predictions of cell type based on images. A custom dataset of red blood cells and neurons was generated, containing 50 images each. Example images of each category are shown below:
 
 ![image](https://user-images.githubusercontent.com/107410852/213875863-952a910d-4890-41f2-bf18-842cb5def346.png)
+
 Red blood cells
 
 ![image](https://user-images.githubusercontent.com/107410852/213875896-6fb73d3e-5701-48db-9509-ed0e35e2e11e.png)
+
 Neurons
 
 ### Generating utility functions to prepare images for model
@@ -160,7 +162,7 @@ class CellImageDataset(Dataset):
             image = torch.Tensor.double(image)
         return image, label
 ~~~
-Due to the image data being multiple files instead of one file as with tabular data, the containing folder of the images is required, as well as the name of the file (in the respective .csv file). The image must also be read and converted to an array, then to a tensor. There is an option to transform the images. With these data, the images were resized, converted to grayscale and normalised using `transforms.Compose` as below.
+Due to the image data being multiple files instead of one file as with tabular data, the containing folder of the images is required, as well as the name of the file (in the respective .csv file). The image must also be read and converted to an array, then to a tensor. There is an option to transform the images. With these data, the images were resized, converted to grayscale and normalised using `transforms.Compose` as below. The reason for grayscaling the images was that, depending on the type of staining and/or fluorophores used, images of the same cell type can be any colour, and as such colour was anticipated to be unhelpful and potentially misleading. Normalisation was applied to compensate for variations in photo brightness which could strongly bias certain phots above others. Thus, normalising allows for better model characterisation of shapes within the images.
 ~~~
 transforms = T.Compose([
                         T.Resize([62, 156]),
