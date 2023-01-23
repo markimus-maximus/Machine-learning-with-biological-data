@@ -2,13 +2,13 @@
 
 # Background and aims
 
-This project generated `PyTorch` convoluted neural networks to make predictions about biological data. The first dataset analysed in this project is peptide sequences, with an associated protein category. With these data, a model was trained to predict protein category from the amino acid peptide sequence. The second dataset in this project is a range of microscopic images of different cell types. With this dataset, the model was trained to make predictions of the cell type based on the image presented.
+This project generated `PyTorch` convoluted neural networks to make predictions about biological data. The first dataset analysed in this project is peptide sequences, with an associated protein category. With these data, a model was trained to predict protein category from the amino acid peptide sequence. The second dataset in this project is a range of microscopic images of different cell types. With this dataset, the model was trained to make predictions of the cell type based on the image presented. The next aim is to carry out segmentation approaches with cell images.
 
 ## Making predictions of protein category from amino acid sequences
 
 ### Obtaining and preparing the dataset
 
-Data were downloaded from uniprot. All sequences shorter than 50 amino acid residues were excluded. Similarly, those sequences containing 'X', where the amino acid sequences was unknown, were also excluded. The database selected for analysis was the complete human peptide list. From this database, 5 protein categories were chosen comprising of 736 sequences. The 5 categories selected are Tyrosine-protein kinase receptors (n=102), GTP-binding proteins (n=209), immunoglobulin heavy chains (n=134), histone H family proteins (n=216) and aquaporins (n=72). See image below for screenshot of the dataset
+All code for this part of the project can be found in `Protein_sequences.py`. The database selected for analysis was the complete human peptide list from uniprot. To initially process the data, `prep_protein_seq_data(path_to_csv, save_data=False, path_to_new_data=False)` was generated. Using this function, all sequences shorter than 50 amino acid residues were excluded and similarly, those sequences containing 'X', where the amino acid sequences was unknown, were also excluded.  From this database, 5 protein categories were chosen comprising of 736 sequences. The 5 categories selected are Tyrosine-protein kinase receptors (n=102), GTP-binding proteins (n=209), immunoglobulin heavy chains (n=134), histone H family proteins (n=216) and aquaporins (n=72). See image below for screenshot of the dataset
 
 ![image](https://user-images.githubusercontent.com/107410852/213874794-da1fa551-65b6-4003-b3fe-4a76f8120c3a.png)
 
