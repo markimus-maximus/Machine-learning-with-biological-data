@@ -3,27 +3,19 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import pandas as pd
-import plotly.express as px
-import re
 import seaborn as sns
 import torch
 import torch.nn.functional as F
-import torchvision.datasets as datasets
 
 from ast import literal_eval
 from datetime import datetime
-from IPython.display import display
 from pathlib import Path
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix
 from sklearn.preprocessing import OneHotEncoder
 from time import time, time_ns
 from torch import tensor
-from torch.autograd import Variable
-from torchmetrics.classification import MulticlassAccuracy
-from torchmetrics import ConfusionMatrix
-from torch.nn import CrossEntropyLoss
-from torch.utils.data import Dataset, DataLoader, random_split
+from torch.utils.data import Dataset, DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
 
