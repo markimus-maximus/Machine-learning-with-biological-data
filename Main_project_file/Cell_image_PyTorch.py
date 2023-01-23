@@ -1,26 +1,17 @@
-import cv2
 import io
 import json
 import numpy as np
 import os
 import pandas as pd
-import prepare_image_data as pid
-import plotly.express as px
-import re
-
-
-import os
 import PIL
+import prepare_image_data as pid
 import torch
 import torchvision.transforms as T
-import numpy as np
 import pandas as pd
-from torch.utils.data import Dataset
-
 from time import time, time_ns
 import torch
 import torch.nn.functional as F
-
+from torch.utils.data import Dataset
 import torchmetrics
 import torchvision.datasets as datasets
 import yaml
@@ -253,6 +244,8 @@ def evaluate_model(model, dataloader_val, dataloader_test=None):
     
     performance_metrics = {'val_loss_mean':val_loss_mean, 'val_acc_mean':val_acc_mean, 'test_loss_mean':test_loss_mean, 'test_acc_mean':test_acc_mean, 'mean_inference_latency':mean_inference_latency}
     return performance_metrics
+
+
 
 if __name__ == '__main__':
     transforms = T.Compose([
