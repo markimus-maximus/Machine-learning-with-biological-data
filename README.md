@@ -2,13 +2,13 @@
 
 # Background and aims
 
-This project generated `PyTorch` convoluted neural networks to make predictions about biological data. The first dataset analysed in this project is peptide sequences, with an associated protein category. With these data, a model was trained to predict protein category from the amino acid peptide sequence. The second dataset in this project is a range of microscopic images of different cell types. With this dataset, the model was trained to make predictions of the cell type based on the image presented.
+This project generated `PyTorch` convoluted neural networks to make predictions about biological data. The first dataset analysed in this project is peptide sequences, with an associated protein category. With these data, a model was trained to predict protein category from the amino acid peptide sequence. The second dataset in this project is a range of microscopic images of different cell types. With this dataset, the model was trained to make predictions of the cell type based on the image presented. The next aim is to carry out segmentation approaches with cell images.
 
 ## Making predictions of protein category from amino acid sequences
 
 ### Obtaining and preparing the dataset
 
-Data were downloaded from uniprot. All sequences shorter than 50 amino acid residues were excluded. Similarly, those sequences containing 'X', where the amino acid sequences was unknown, were also excluded. The database selected for analysis was the complete human peptide list. From this database, 5 protein categories were chosen comprising of 736 sequences. The 5 categories selected are Tyrosine-protein kinase receptors (n=102), GTP-binding proteins (n=209), immunoglobulin heavy chains (n=134), histone H family proteins (n=216) and aquaporins (n=72). See image below for screenshot of the dataset
+All code for this part of the project can be found in `Protein_sequences.py`. The database selected for analysis was the complete human peptide list from uniprot. To initially process the data, `prep_protein_seq_data(path_to_csv, save_data=False, path_to_new_data=False)` was generated. Using this function, all sequences shorter than 50 amino acid residues were excluded and similarly, those sequences containing 'X', where the amino acid sequences was unknown, were also excluded.  From this database, 5 protein categories were chosen comprising of 736 sequences. The 5 categories selected are Tyrosine-protein kinase receptors (n=102), GTP-binding proteins (n=209), immunoglobulin heavy chains (n=134), histone H family proteins (n=216) and aquaporins (n=72). See image below for screenshot of the dataset
 
 ![image](https://user-images.githubusercontent.com/107410852/213874794-da1fa551-65b6-4003-b3fe-4a76f8120c3a.png)
 
@@ -24,8 +24,10 @@ Neural networks generally require consistent input size, and accordingly the len
 Once a list of padded sequences had been generated, the data were one hot encoded. This encoding generates data in a form required by PyTorch, while also decreasing the possibility of weight biases if other numerical data were used to train the model. The labels were also one hot encoded.
 
 Splitting data into discrete groups ahead of model training ensures that the model has not seen the data when it is later applied for validation and testing purposes. To split the data, the `split_dataset(sequences:list, labels, random_state:int)` function was written. In addition to splitting the data, this function also converts the datasets into `Tensor`, the data type required to train `PyTorch` models.
+
+Subsequent code can be found in Cell_image_PyTorch.py
  
- The final piece of data preparation was to generate a dataset class which allows the datset to be indexed and tprovdes a length, this making the data iterable. This iterability allows the data to be fed in batches. See below for the dataset class.
+The final piece of data preparation was to generate a dataset class which allows the datset to be indexed and tprovdes a length, this making the data iterable. This iterability allows the data to be fed in batches. See below for the dataset class.
  ~~~
  class ProteinSeqDataset(Dataset):
     """Creates a data class to allow a given dataset to be iterable for batch feeding the model.
@@ -120,7 +122,7 @@ Neurons
 
 ### Generating utility functions to prepare images for model
 
-The file names and associated categories were first added to a .csv file. This file was then fed into the  `split_data_into_dataset(path_to_csv, train_to_dev_ratio,  val_to_test_ratio)` function which takes these data and, using `pd.dataframe.sample`, randomly shuffles the data. The data are then split into the train, val and test datasets according to the `train_to_dev_ratio` and `val_to_test_ratio` arguments. The function then generates .csv files for each of the datasets. 
+The utility functions for image processing can be found in `prepare_image_data.py`. The file names and associated categories were first added to a .csv file. This file was then fed into the  `split_data_into_dataset(path_to_csv, train_to_dev_ratio,  val_to_test_ratio)` function which takes these data and, using `pd.dataframe.sample`, randomly shuffles the data. The data are then split into the train, val and test datasets according to the `train_to_dev_ratio` and `val_to_test_ratio` arguments. The function then generates .csv files for each of the datasets. 
 
 Once the names and categories of the images had been split, the images themselves required splitting in the same manner. To achieve this, `partition_images(source_folder, destination_folder, data_file_directory)`was written. A .csv file corresponding to one of the datasets (generated above) is used as a reference image name list. The images are only copied to the destination folder if the name of the image is found in the reference dataset. 
 
