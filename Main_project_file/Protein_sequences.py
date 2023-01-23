@@ -441,17 +441,13 @@ def save_nn_model(folder_path:str, model, training_metrics:dict, performance_met
     torch.save(model.state_dict(), file_name)
     #need to convert from tensor to string of json won't save Tensor dtype
     with open(f'{path_date}/parameters.json', 'a') as outfile:
-        all_parameters = str(all_parameters)
         json.dump(all_parameters, outfile)
     with open(f'{path_date}/training_metrics.json', 'a') as outfile:
-        training_metrics = str(training_metrics)
         json.dump(training_metrics, outfile)
     with open(f'{path_date}/performance_metrics.json', 'a') as outfile:
-        performance_metrics =  str(performance_metrics)
         json.dump(performance_metrics, outfile)
     if hyperparameters is not None:
         with open(f'{path_date}/hyperparameters.json', 'a') as outfile:
-            hyperparameters = str(hyperparameters)
             json.dump(hyperparameters, outfile)
     return path_date
 
