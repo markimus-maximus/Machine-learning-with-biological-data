@@ -1,5 +1,3 @@
-import io
-import json
 import numpy as np
 import os
 import pandas as pd
@@ -12,25 +10,12 @@ from time import time, time_ns
 import torch
 import torch.nn.functional as F
 from torch.utils.data import Dataset
-import torchmetrics
-import torchvision.datasets as datasets
-import yaml
 
-from ast import literal_eval
-from datetime import datetime
-from IPython.display import display
 from pathlib import Path
 from PIL import Image
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import log_loss
-from sklearn.preprocessing import OneHotEncoder
 from time import time
-from torch.autograd import Variable
-from torchmetrics.classification import MulticlassAccuracy
-from torch.nn import CrossEntropyLoss
-from torch.utils.data import Dataset, DataLoader, random_split
+from torch.utils.data import Dataset, DataLoader
 from torch.utils.tensorboard import SummaryWriter
-from torch import tensor
 
 
 class CellImageDataset(Dataset):
