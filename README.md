@@ -24,8 +24,10 @@ Neural networks generally require consistent input size, and accordingly the len
 Once a list of padded sequences had been generated, the data were one hot encoded. This encoding generates data in a form required by PyTorch, while also decreasing the possibility of weight biases if other numerical data were used to train the model. The labels were also one hot encoded.
 
 Splitting data into discrete groups ahead of model training ensures that the model has not seen the data when it is later applied for validation and testing purposes. To split the data, the `split_dataset(sequences:list, labels, random_state:int)` function was written. In addition to splitting the data, this function also converts the datasets into `Tensor`, the data type required to train `PyTorch` models.
+
+Subsequent code can be found in Cell_image_PyTorch.py
  
- The final piece of data preparation was to generate a dataset class which allows the datset to be indexed and tprovdes a length, this making the data iterable. This iterability allows the data to be fed in batches. See below for the dataset class.
+The final piece of data preparation was to generate a dataset class which allows the datset to be indexed and tprovdes a length, this making the data iterable. This iterability allows the data to be fed in batches. See below for the dataset class.
  ~~~
  class ProteinSeqDataset(Dataset):
     """Creates a data class to allow a given dataset to be iterable for batch feeding the model.
