@@ -8,7 +8,7 @@ This project generated `PyTorch` convoluted neural networks to make predictions 
 
 ### Obtaining and preparing the dataset
 
-Data were downloaded from uniprot. All sequences shorter than 50 amino acid residues were excluded. The database selected for analysis was the complete human peptide list. From this database, 5 protein categories were chosen comprising of 736 sequences. The 5 categories selected are Tyrosine-protein kinase receptors (n=102), GTP-binding proteins (n=209), immunoglobulin heavy chains (n=134), histone H family proteins (n=216) and aquaporins (n=72). See image below for screenshot of the dataset
+Data were downloaded from uniprot. All sequences shorter than 50 amino acid residues were excluded. Similarly, those sequences containing 'X', where the amino acid sequences was unknown, were also excluded. The database selected for analysis was the complete human peptide list. From this database, 5 protein categories were chosen comprising of 736 sequences. The 5 categories selected are Tyrosine-protein kinase receptors (n=102), GTP-binding proteins (n=209), immunoglobulin heavy chains (n=134), histone H family proteins (n=216) and aquaporins (n=72). See image below for screenshot of the dataset
 
 ![image](https://user-images.githubusercontent.com/107410852/213874794-da1fa551-65b6-4003-b3fe-4a76f8120c3a.png)
 
@@ -51,7 +51,7 @@ Splitting data into discrete groups ahead of model training ensures that the mod
 
 The `create_dataloader` function was created to batch feed the model data. To achieve this the class `ProteinSeqDataset` described above was used, as well as the `Dataloader` class from PyTorch. 
 
-Given that the sequences are 1 dimensional, 1d convolutional layers were selected for the nerual network. The preliminary architecture of the model for screening purposes comprised of 2x 1dconvoluted layes, 1x maxpool layer (max 30), and a fully connected linear regression layer. The code including activator functions is shown below.
+Given that the sequences are 1 dimensional, 1d convolutional layers were selected for the nerual network. The preliminary architecture of the model for screening purposes comprised of 2x 1dconvoluted layes, 1x maxpool layer (max 30), and a fully connected linear regression layer. The architecture of the nerual network including activator functions is shown below.
 
 ~~~
 def __init__(self):
