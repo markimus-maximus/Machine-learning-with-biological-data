@@ -41,27 +41,6 @@ from torch.utils.data import Dataset, DataLoader, random_split
 from torch.utils.tensorboard import SummaryWriter
 from torch import tensor
 
-#pid.get_lowest_image_dimensions_from_folder(r'C:\Users\marko\DS Projects\Machine-learning-with-biological-data\Main_project_file\Images\Cell images 1')
-
-
-#pid.resize_images(140, r'C:\Users\marko\DS Projects\Machine-learning-with-biological-data\Main_project_file\Images\Cell images 1', r'C:\Users\marko\DS Projects\Machine-learning-with-biological-data\Main_project_file\Images\Cell images 1 transformed')
-
-#Set seeds
-np.random.seed(0)
-torch.manual_seed(0)
-torch.cuda.manual_seed(0)
-torch.cuda.manual_seed_all(0)
-
-
-
-
-
-# split_data_into_datasets(r'C:\Users\marko\DS Projects\Machine-learning-with-biological-data\Main_project_file\Images encoded.csv'
-# ,
-# 0.7
-# , 
-# 0.5
-# )
 
 class CellImageDataset(Dataset):
     def __init__(self, csv_file, root_dir, transform=None):
@@ -99,9 +78,7 @@ class CNN(torch.nn.Module):
     
     """A neural network building class.
     Args: 
-        input_dim: Input dimensions informing the number of nodes 
-        hidden_dim_array: Dimensions of hidden array in a list of 2 integers
-        output_dim: Output dimesnions
+       kernel: A list of integers reflecting the kernel sizes
     Returns:
         Neural network architecture to be trained
     """
@@ -132,6 +109,8 @@ def train_cell_image_nn(model, num_epochs:int, name_writer:str, dataloader, lr, 
         num_epochs: The number of epochs to train the model on (int)
         name_writer: A name for Tensorboard graph (string)
         dataloader: A dataloader instance for feeding the model
+        lr: The learning rate for an instance of the model
+        optimiser: The optimiser to use for the training process
     Returns:
         training_metrics: A dictionary containing training_duration and training_loss}
         model_parameters: A dictionary containing optimiser_parameters, model state dictionary and batch size"""
@@ -156,18 +135,15 @@ def train_cell_image_nn(model, num_epochs:int, name_writer:str, dataloader, lr, 
             prediction = model(features)
             print(prediction)
             label = torch.Tensor.double(label)
-            #print(label)
             #calculate the loss- used to apply to gradient descent algorithm. Using cross entropy
             training_loss = F.binary_cross_entropy(prediction, label)
             print(f'training_loss: {training_loss}')
             training_acc = multiclass_accuracy(prediction, label)
-            #print(f'training_acc: {training_acc}')
-            # #need same dimensions, so flattenned prediction which was (x, 1) dimension
             # prediction_flattened = torch.flatten(prediction)
             training_acc_list.append(training_acc)
             # #populates gradients of model parameters with respect to loss
             diff = training_loss.backward()
-            # #opimisation step 
+            #opimisation step 
             optimiser.step()
             # #the .grad associated with tensor .backward does not go back to 0 with every iteration (clearly this would cause issues with SGD), accordingly must re-zero the grad of the optimiser after each iteration. But don't do this before .step!
             optimiser.zero_grad()
@@ -241,10 +217,7 @@ def evaluate_model(model, dataloader_val, dataloader_test=None):
             inference_latencies_list.append(time_ns() - inference_latency_start)
             val_loss = F.binary_cross_entropy(prediction, y)
             print(f'val_loss: {val_loss}')
-            #need to instantiate r2 for this to work
             val_acc = multiclass_accuracy(prediction, y)
-            #need same dimensions, so flattenned prediction which was (x, 1) dimension
-            #prediction_flattened = torch.flatten(prediction)
             val_acc_list.append(val_acc)
             print(f'val_acc: {val_acc}')
             val_loss = val_loss.detach().numpy()
@@ -267,8 +240,6 @@ def evaluate_model(model, dataloader_val, dataloader_test=None):
                 print(f'test_loss: {test_loss}')
                 #need to instantiate r2 for this to work
                 test_acc = multiclass_accuracy(y, y)
-                # #need same dimensions, so flattenned prediction which was (x, 1) dimension
-                # prediction_flattened = torch.flatten(prediction)
                 test_acc_list.append(test_acc)
                 #truncates the loss list to last 30, with which to get more reliable average
                 if len(test_loss_list) > 30:
@@ -284,8 +255,6 @@ def evaluate_model(model, dataloader_val, dataloader_test=None):
     return performance_metrics
 
 if __name__ == '__main__':
-    #dataset = pd.read_csv(r'C:\Users\marko\DS Projects\Machine-learning-with-biological-data\Main_project_file\train_dataset.csv')
-    #order here is important
     transforms = T.Compose([
                         T.Resize([62, 156]),
                         T.Grayscale(),
@@ -295,26 +264,16 @@ if __name__ == '__main__':
     training_dataset = CellImageDataset(r'C:\Users\marko\DS Projects\Machine-learning-with-biological-data\Main_project_file\train_dataset.csv', r'C:\Users\marko\DS Projects\Machine-learning-with-biological-data\Main_project_file\image datasets\train_images', transform=transforms)
     for i in range(len(training_dataset)):
         image, label  = training_dataset[i]
-
         print(i, image.size(), label)
-
-        # if i == 3:
-        #     break
     batch_size = 10
     dataloader_train = DataLoader(dataset=training_dataset, batch_size=batch_size, shuffle=True)
-    print('dataloader')
     NN_inst = CNN([8, 8])
-    print('nn_inst')
     n_iters = len(dataloader_train) * 100
     num_epochs = pid.get_num_epochs(n_iters, batch_size, training_dataset)
-
-    print(num_epochs)
     training_metrics, model_parameters = train_cell_image_nn(NN_inst, num_epochs, 'cell images first pass', dataloader_train, 0.1, torch.optim.SGD)
-    
     val_dataset = CellImageDataset(r'C:\Users\marko\DS Projects\Machine-learning-with-biological-data\Main_project_file\val_dataset.csv', r'C:\Users\marko\DS Projects\Machine-learning-with-biological-data\Main_project_file\image datasets\val_images', transform=transforms)
     dataloader_val = DataLoader(dataset=val_dataset, batch_size=len(val_dataset), shuffle=True)
     eval_metrics = evaluate_model(NN_inst, dataloader_val, dataloader_test=None)    
-    print(eval_metrics)
 
 
 
