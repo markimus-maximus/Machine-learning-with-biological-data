@@ -1,7 +1,8 @@
+import cv2
+import matplotlib.image as mpimg
 import numpy as np
 import os
 import pandas as pd
-import PIL
 import prepare_image_data as pid
 import torch
 import torchvision.transforms as T
@@ -9,10 +10,10 @@ import pandas as pd
 from time import time, time_ns
 import torch
 import torch.nn.functional as F
-from torch.utils.data import Dataset
+import xml.etree.ElementTree as ET
 
 from pathlib import Path
-from PIL import Image
+from PIL import Image, ImageDraw
 from time import time
 from torch.utils.data import Dataset, DataLoader
 from torch.utils.tensorboard import SummaryWriter
@@ -44,10 +45,10 @@ class CellImageDataset(Dataset):
         image = Image.fromarray(np.uint8(image))
         label = self.classes.iloc[idx, 1:]
         label = np.array([label])
-        label = torch.tensor(label.reshape(-1).tolist())
-        if self.transform:
-            image = self.transform(image)
-            image = torch.Tensor.double(image)
+        label = torch.tensor(label)
+        print(f'label: {label}')
+        t_dims = (1, 0 , 2, 5)
+        label = F.pad(label, t_dims, "constant", 0)
         return image, label
 
 class CNN(torch.nn.Module):
@@ -58,12 +59,12 @@ class CNN(torch.nn.Module):
     Returns:
         Neural network architecture to be trained
     """
-    def __init__(self, kernel):
+    def __init__(self, kernel, input_dim):
         super().__init__()
         #define layers
         self.layers = torch.nn.Sequential(
             #changed to 1d as not an image. Num channels, num outputs
-            torch.nn.Conv2d(1, 4, kernel[0]),
+            torch.nn.Conv2d(input_dim, 4, kernel[0]),
             torch.nn.ReLU(),
             torch.nn.Conv2d(4, 8, kernel[1]),
             torch.nn.ReLU(),
@@ -230,30 +231,159 @@ def evaluate_model(model, dataloader_val, dataloader_test=None):
     performance_metrics = {'val_loss_mean':val_loss_mean, 'val_acc_mean':val_acc_mean, 'test_loss_mean':test_loss_mean, 'test_acc_mean':test_acc_mean, 'mean_inference_latency':mean_inference_latency}
     return performance_metrics
 
+# images_dir = r'C:\Users\marko\DS Projects\Machine-learning-with-biological-data\Main_project_file\Images\White blood cells kaggle dataset\dataset2-master\archive\dataset-master\dataset-master\JPEGImages'
+# annotations_dir = r'C:\Users\marko\DS Projects\Machine-learning-with-biological-data\Main_project_file\Images\White blood cells kaggle dataset\dataset2-master\archive\dataset-master\dataset-master\Annotations'
 
+
+# sample_image = Image.open(r'C:\Users\marko\DS Projects\Machine-learning-with-biological-data\Main_project_file\Images\White blood cells kaggle dataset\dataset2-master\archive\dataset-master\dataset-master\JPEGImages\BloodImage_00024.jpg')
+# print(sample_image)
+# with open(r'C:\Users\marko\DS Projects\Machine-learning-with-biological-data\Main_project_file\Images\White blood cells kaggle dataset\dataset2-master\archive\dataset-master\dataset-master\Annotations\BloodImage_00024.xml') as annot_file:
+#     print(''.join(annot_file.readlines()))
+
+# tree = ET.parse(r'C:\Users\marko\DS Projects\Machine-learning-with-biological-data\Main_project_file\Images\White blood cells kaggle dataset\dataset2-master\archive\dataset-master\dataset-master\Annotations\BloodImage_00024.xml')
+# root = tree.getroot()
+
+# sample_annotations = []
+
+# for neighbor in root.iter('bndbox'):
+#     xmin = int(neighbor.find('xmin').text)
+#     ymin = int(neighbor.find('ymin').text)
+#     xmax = int(neighbor.find('xmax').text)
+#     ymax = int(neighbor.find('ymax').text)
+    
+# #     print(xmin, ymin, xmax, ymax)
+#     sample_annotations.append([xmin, ymin, xmax, ymax])
+    
+# sample_image_annotated = sample_image.copy()
+
+# img_bbox = ImageDraw.Draw(sample_image_annotated)
+
+# for bbox in sample_annotations:
+#     print(bbox)
+#     img_bbox.rectangle(bbox, outline="green") 
+
+
+# sample_image_annotated.show()
+class WhiteBloodCellsDataset(Dataset):
+    def __init__(self, image_directory, annotation_directory):
+        """
+        Args:
+            csv_file (string): Path to the csv file with annotations.
+            root_dir (string): Directory with all the images.
+            transform (callable, optional): Optional transform to be applied
+                on a sample.
+        """
+        self.image_directory = image_directory
+        self.annotation_directory = annotation_directory
+        
+
+    def __len__(self):
+        return len(self.image_directory)
+
+    def __getitem__(self, idx):
+        if torch.is_tensor(idx):
+            idx = idx.tolist()
+
+        transforms = T.Compose([T.ToTensor(),
+                                T.Normalize(0.5, 0.5, 0.5)])
+        img_list = os.listdir(self.image_directory)
+        image_dir = f'{self.image_directory}/{img_list[idx]}'
+        image = Image.open(image_dir)
+        feature = transforms(image)
+        feature = torch.tensor(feature)
+        feature = feature.double()
+        print(feature)
+
+        annotation_list = os.listdir(self.annotation_directory)
+        label_file = f'{self.annotation_directory}/{annotation_list[idx]}'
+        # with open(label_file) as annot_file:
+        #     print(''.join(annot_file.readlines()))
+        tree = ET.parse(label_file)
+        root = tree.getroot()
+
+        sample_annotations = []
+        for neighbor in root.iter('bndbox'):
+            xmin = int(neighbor.find('xmin').text)
+            ymin = int(neighbor.find('ymin').text)
+            xmax = int(neighbor.find('xmax').text)
+            ymax = int(neighbor.find('ymax').text)
+            sample_annotations.append([xmin, ymin, xmax, ymax])
+
+        label = sample_annotations
+        label = np.array([label])
+        label = torch.tensor(label)
+        missing = 18 - np.array(label).shape[1]
+        label = F.pad(label, (0, 0, 0, missing), 'constant')
+        label = label.double()
+        print(f'label shape = {label.shape}')
+        return feature, label
+
+def get_the_dims_of_the_annotations():
+    list_all = []
+    annotation_directory = r'C:\Users\marko\DS Projects\Machine-learning-with-biological-data\Main_project_file\Images\White blood cells kaggle dataset\dataset2-master\archive\dataset-master\dataset-master\Annotations'
+    annotation_list = os.listdir(annotation_directory)
+    for dir in annotation_list:
+        label_file = f'{annotation_directory}/{dir}'
+        # with open(label_file) as annot_file:
+        #     print(''.join(annot_file.readlines()))
+        tree = ET.parse(label_file)
+        root = tree.getroot()
+
+        sample_annotations = []
+        for neighbor in root.iter('bndbox'):
+            xmin = int(neighbor.find('xmin').text)
+            ymin = int(neighbor.find('ymin').text)
+            xmax = int(neighbor.find('xmax').text)
+            ymax = int(neighbor.find('ymax').text)
+            sample_annotations.append([xmin, ymin, xmax, ymax])
+            label = np.array([sample_annotations])
+            shape = np.array(label.shape)
+            #print(shape)
+            list_all.append(shape)
+    print(list_all)      
+    max_len = max([l[1] for l in list_all])    
+    print(max_len)
+
+def collate_fn(batch):
+    img, bbox = batch
+    zipped = zip(img, bbox)
+    return list(zipped)
+
+def pad_tensor(t):
+    t = torch.tensor(t)
+    padding = max(20) - t.size()
+    t = torch.nn.functional.pad(t, (1, padding))
+    return t
 
 if __name__ == '__main__':
-    transforms = T.Compose([
-                        T.Resize([62, 156]),
-                        T.Grayscale(),
-                        T.ToTensor(),
-                        T.Normalize((0.5, ), (0.5, ))
-                        ])
-    training_dataset = CellImageDataset(r'C:\Users\marko\DS Projects\Machine-learning-with-biological-data\Main_project_file\train_dataset.csv', r'C:\Users\marko\DS Projects\Machine-learning-with-biological-data\Main_project_file\image datasets\train_images', transform=transforms)
-    for i in range(len(training_dataset)):
-        image, label  = training_dataset[i]
-        print(i, image.size(), label)
-    batch_size = 10
-    dataloader_train = DataLoader(dataset=training_dataset, batch_size=batch_size, shuffle=True)
-    NN_inst = CNN([8, 8])
-    n_iters = len(dataloader_train) * 100
-    num_epochs = pid.get_num_epochs(n_iters, batch_size, training_dataset)
+    
+    # transforms = T.Compose([
+    #                     T.Resize([62, 156]),
+    #                     T.Grayscale(),
+    #                     T.ToTensor(),
+    #                     T.Normalize((0.5, ), (0.5, ))
+    #                     ])
+    # training_dataset = CellImageDataset(r'C:\Users\marko\DS Projects\Machine-learning-with-biological-data\Main_project_file\train_dataset.csv', r'C:\Users\marko\DS Projects\Machine-learning-with-biological-data\Main_project_file\image datasets\train_images', transform=transforms)
+    # for i in range(len(training_dataset)):
+    #     image, label  = training_dataset[i]
+    #     print(i, image.size(), label)
+    # batch_size = 10
+    # dataloader_train = DataLoader(dataset=training_dataset, batch_size=batch_size, shuffle=True)
+    # NN_inst = CNN([8, 8])
+    # n_iters = len(dataloader_train) * 100
+    # num_epochs = pid.get_num_epochs(n_iters, batch_size, training_dataset)
+    # training_metrics, model_parameters = train_cell_image_nn(NN_inst, num_epochs, 'cell images first pass', dataloader_train, 0.1, torch.optim.SGD)
+    # val_dataset = CellImageDataset(r'C:\Users\marko\DS Projects\Machine-learning-with-biological-data\Main_project_file\val_dataset.csv', r'C:\Users\marko\DS Projects\Machine-learning-with-biological-data\Main_project_file\image datasets\val_images', transform=transforms)
+    # dataloader_val = DataLoader(dataset=val_dataset, batch_size=len(val_dataset), shuffle=True)
+    # eval_metrics = evaluate_model(NN_inst, dataloader_val, dataloader_test=None)    
+
+
+    #get_the_dims_of_the_annotations()
+    a = WhiteBloodCellsDataset(r'C:\Users\marko\DS Projects\Machine-learning-with-biological-data\Main_project_file\Images\White blood cells kaggle dataset\dataset2-master\archive\dataset-master\dataset-master\JPEGImages', r'C:\Users\marko\DS Projects\Machine-learning-with-biological-data\Main_project_file\Images\White blood cells kaggle dataset\dataset2-master\archive\dataset-master\dataset-master\Annotations')
+    dataloader_train = DataLoader(dataset=a, batch_size=1, shuffle=True)
+    NN_inst = CNN([8, 8], input_dim=3)
+    n_iters = 1000
+    num_epochs = pid.get_num_epochs(n_iters, 1, dataloader_train)
     training_metrics, model_parameters = train_cell_image_nn(NN_inst, num_epochs, 'cell images first pass', dataloader_train, 0.1, torch.optim.SGD)
-    val_dataset = CellImageDataset(r'C:\Users\marko\DS Projects\Machine-learning-with-biological-data\Main_project_file\val_dataset.csv', r'C:\Users\marko\DS Projects\Machine-learning-with-biological-data\Main_project_file\image datasets\val_images', transform=transforms)
-    dataloader_val = DataLoader(dataset=val_dataset, batch_size=len(val_dataset), shuffle=True)
-    eval_metrics = evaluate_model(NN_inst, dataloader_val, dataloader_test=None)    
-
-
-
     
 
