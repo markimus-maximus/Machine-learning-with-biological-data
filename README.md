@@ -2,7 +2,7 @@
 
 # Background and aims
 
-This project generated `PyTorch` convoluted neural networks to make predictions about biological data. The first dataset analysed in this project is peptide sequences, with an associated protein category. With these data, a model was trained to predict protein category from the amino acid peptide sequence. The second dataset in this project is a range of microscopic images of different cell types. With this dataset, the model was trained to make predictions of the cell type based on the image presented. The next aim is to carry out segmentation approaches with cell images.
+This project generated `PyTorch` convoluted neural networks to make predictions about biological data. The first dataset analysed in this project is peptide sequences, with an associated protein category. With these data, a model was trained to predict protein category from the amino acid peptide sequence. The second dataset in this project is a range of microscopic images of different cell types. With this dataset, the model was trained to make predictions of the cell type based on the image presented. The third dataset is a series of blood sample images with bounding box annotations (dataset from Kaggle). The aim with this dataset is to train the model to detect cells from images. This project is still ongoing.
 
 ## Making predictions of protein category from amino acid sequences
 
@@ -27,7 +27,7 @@ Splitting data into discrete groups ahead of model training ensures that the mod
 
 Subsequent code can be found in Cell_image_PyTorch.py
  
-The final piece of data preparation was to generate a dataset class which allows the datset to be indexed and tprovdes a length, this making the data iterable. This iterability allows the data to be fed in batches. See below for the dataset class.
+The final piece of data preparation was to generate a dataset class which allows the datset to be indexed and provides a length, thus making the data iterable. This iterability allows the data to be fed in batches. As always, dataset classes inherit from torch.utils.data.Dataset. See below for the dataset class.
  ~~~
  class ProteinSeqDataset(Dataset):
     """Creates a data class to allow a given dataset to be iterable for batch feeding the model.
@@ -128,7 +128,7 @@ Once the names and categories of the images had been split, the images themselve
 
 ### Creating an iterable dataset for feeding the model
 
-In order to train the model, the dataset prepared above needs to be made into a class which returns its len and allows for indexing. This was more involved for images than for tabular data (above). See the code below.
+In order to train the model, the dataset prepared above needs to be made into a class which returns its len and allows for indexing. As always, dataset classes inherit from torch.utils.data.Dataset. Generating this dataset was more involved for images than for tabular data (generated above), due to the factthat the features were images. Accordingly, `cv2.imread` was utilised to import the image data, and this was converted to a tensor.  See the code below.
 
 ~~~
 class CellImageDataset(Dataset):
@@ -182,6 +182,10 @@ Training curves (below) show that there was a very good training loss generated 
 ![image](https://user-images.githubusercontent.com/107410852/213882842-0c9735ad-f9c4-4474-81ca-fac1aec45bab.png)
 
 Predicting cell type from images was successful with little need for optimisations. An interesting follow up to this project would be to add yet more cell types into the dataset to really test the predictive power of the neural networks.
+
+## Detecting cell objects from images
+
+An iterable dataset was generated, named `BloodCellsDataset`
 
 
 
