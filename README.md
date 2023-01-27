@@ -218,7 +218,7 @@ def __init__(self, kernel, input_dim, output_dim):
     def forward(self, X):
             return self.layers(X)
 ~~~
-Due to different datatype requirements for `nn.functional.cross_entropy`, a new training function was generated with minor variations as compared the previous training function.
+
 
 
 
