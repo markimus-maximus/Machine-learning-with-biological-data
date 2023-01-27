@@ -2,7 +2,7 @@
 
 # Background and aims
 
-This project generated `PyTorch` convoluted neural networks to make predictions about biological data. The first dataset analysed in this project is peptide sequences, with an associated protein category. With these data, a model was trained to predict protein category from the amino acid peptide sequence. The second dataset in this project is a range of microscopic images of different cell types. With this dataset, the model was trained to make predictions of the cell type based on the image presented. The third dataset is a series of blood sample images with bounding box annotations (dataset from Kaggle). The aim with this dataset is to train the model to detect cells from images. This project is still ongoing.
+This project generated `PyTorch` convoluted neural networks to make predictions about biological data. The first dataset analysed in this project is peptide sequences, with an associated protein category. With these data, a model was trained to predict protein category from the amino acid peptide sequence. The second dataset in this project is a range of microscopic images of different cell types. With this dataset, the model was trained to make predictions of the cell type based on the image presented. The third dataset is a series of blood sample images containing 1 of 4 variants of white blood cells (eosinophils, lymphocytes, monocytes and neutrophils, with the aim to correctly identify the variant from the images.
 
 ## Making predictions of protein category from amino acid sequences
 
@@ -183,11 +183,42 @@ Training curves (below) show that there was a very good training loss generated 
 
 Predicting cell type from images was successful with little need for optimisations. An interesting follow up to this project would be to add yet more cell types into the dataset to really test the predictive power of the neural networks.
 
-## Detecting cell objects from images
+## Classifying white blood cells
 
-An iterable dataset was generated, named `BloodCellsDataset`
+A Kaggle dataset was used for this element of work (https://www.kaggle.com/datasets/paultimothymooney/blood-cells). There are images of 4 types of blood images containing white blood cells (eosinophils, lymphocyts, monocytes, neutrophils). Each class of white blood cells was contained in an individual folder, meaning that `torchvision.datasets.ImageFolder` could be utilised to generate an iterable dataset. Below is the code for generating the dataset, including the normalisations. Normalisations were applied according to the mean intensities and intensity standard deviations of the dataset, to allow for more efficient training of the model. 
 
+~~~
+train_dataset = ImageFolder(
+    root=r'C:\Users\marko\DS Projects\Machine-learning-with-biological-data\Main_project_file\Images\White blood cells kaggle dataset\dataset2-master\archive\dataset2-master\dataset2-master\images\TRAIN',
+    transform=T.Compose([
+        T.Resize((64, 64)),
+        T.ToTensor(),
+        T.transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])]))
+~~~
 
+`DataLoader` was generated from `torch.utils.data`. A new configurable `WBCs_CNN` convoluted neural network architecture was created, as below: 
+
+~~~
+def __init__(self, kernel, input_dim, output_dim):
+        super().__init__()
+            #define layers
+        self.layers = torch.nn.Sequential(
+            torch.nn.Conv2d(input_dim, 8, kernel[0]),
+            torch.nn.ReLU(),
+            torch.nn.Conv2d(8, 16, kernel[1]),
+            torch.nn.ReLU(),
+            torch.nn.MaxPool2d(30, 30),
+            #This is important.
+            torch.nn.Flatten(),
+            # LazyLinear removes need for manual calculations of input from the flattened layer
+            torch.nn.LazyLinear(output_dim),
+            torch.nn.Softmax()
+        )
+        #define how to stack the different elements of the network together
+    def forward(self, X):
+            return self.layers(X)
+~~~
+Due to different datatype requirements for `nn.functional.cross_entropy`, a new training function was generated with minor variations as compared the previous training function.
 
 
 
