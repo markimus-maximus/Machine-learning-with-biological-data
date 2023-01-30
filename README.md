@@ -2,7 +2,7 @@
 
 # Background and aims
 
-This project generated `PyTorch` convoluted neural networks to make predictions about biological data. The first dataset analysed in this project is peptide sequences, with an associated protein category. With these data, a model was trained to predict protein category from the amino acid peptide sequence. The second dataset in this project is a range of microscopic images of different cell types. With this dataset, the model was trained to make predictions of the cell type based on the image presented. The third dataset is a series of blood sample images containing 1 of 4 variants of white blood cells (eosinophils, lymphocytes, monocytes and neutrophils, with the aim to correctly identify the variant from the images.
+This project generated `PyTorch` convoluted neural networks to make predictions about biological data. The first dataset analysed in this project is peptide sequences, with an associated protein category. With these data, a model was trained to predict protein category from the amino acid peptide sequence. The second dataset in this project is a range of microscopic images of different cell types. With this dataset, the model was trained to make predictions of the cell type based on the image presented. The third dataset is a series of blood sample images containing 1 of 4 variants of white blood cells (eosinophils, lymphocytes, monocytes and neutrophils), with the aim to correctly identify the variant from the images.
 
 ## Making predictions of protein category from amino acid sequences
 
