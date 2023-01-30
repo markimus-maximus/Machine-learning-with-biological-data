@@ -219,6 +219,29 @@ def __init__(self, kernel, input_dim, output_dim):
             return self.layers(X)
 ~~~
 
+The functions for the training and evaluation loops are similar to the previous examples shown here. For the evaluation loop, there was additional functionality added to batch feed with more than 1 iteration due to the size of the dataset and the associated computational demand. The optional argument to include a test dataset was also removed from the evaluation function since there is no test dataset (only validation). The saving function uses similar functionality as previously, except the model parameters were excluded from saving due to inability to serialise the data into a json file. This exclusion of the model parameters should not be an issue since the model parameters should be saved when the model is saved. To screen hyperparameters, a variation of the previous functions was generated, see below for the code: 
+
+~~~
+def hyperparameter_screen(train_dataset, val_dataset):
+    '''Generates, trains and evaluates different models according to hyperparameters'''
+    hyperparameters = generate_nn_config()
+    
+    for dictionary in hyperparameters:
+        print(f'next hyperparameters: {dictionary}')
+        batch_size = dictionary['batch_size'] 
+        
+        dataloader_train = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+        dataloader_val = DataLoader(val_dataset, batch_size=batch_size, shuffle=True)
+        #controls the device allocation, GPU preferred
+        NN_inst = WBCs_CNN([7, 7], input_dim=3, output_dim=4).to(device)
+        
+        training_metrics = train_WBCs_nn(NN_inst, 10, 'WBC detection screen', dataloader_train, dictionary['learning_rate'], torch.optim.SGD)
+        eval_batch_size = 200
+        evaluation_metrics = evaluate_WBCs_model(NN_inst, dataloader_val, eval_batch_size, val_dataset)
+        save_model_and_data(r'C:\Users\marko\DS Projects\Machine-learning-with-biological-data\Main_project_file\data_models_WBCs', NN_inst, training_metrics, evaluation_metrics, dictionary)
+~~~
+
+
 
 
 
