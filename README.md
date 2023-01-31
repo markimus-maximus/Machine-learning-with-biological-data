@@ -240,8 +240,15 @@ def hyperparameter_screen(train_dataset, val_dataset):
         evaluation_metrics = evaluate_WBCs_model(NN_inst, dataloader_val, eval_batch_size, val_dataset)
         save_model_and_data(r'C:\Users\marko\DS Projects\Machine-learning-with-biological-data\Main_project_file\data_models_WBCs', NN_inst, training_metrics, evaluation_metrics, dictionary)
 ~~~
+The first 2 hyperparameters which were screened were learning rate (0.08, 1, 1.2) and batch size (50, 100, 150). Across all the hyperparameter combinations, there was a range in accuracy from 29.1 % to 55.1 % (see below for all hyperparamter combinations). The best combination of hyperparameters observed with the validation dataset was learning rate of 0.08 and batch size of 100. The second and third best hyperparameter combinations were 0.08 learning rate with batch size 50 and learning rate of 1 with batch size 100, respectively. These findings show that learning rate of 0.08  is the best of those tested for training these data.
 
+![image](https://user-images.githubusercontent.com/107410852/215767168-2d3a422d-ee0d-4624-9134-db5fcd4b35b5.png)
 
+Interestingly, the best performing model in terms of training loss was learning rate of 1 with batch size of 50. However, this model showed a larger amount of overfitting. In contrast, while having poorer training losses, the best performing models with learning rate of 0.08 generalised much better. See below for the generalisation scores, calculated as training loss divided by validation loss.
+
+![image](https://user-images.githubusercontent.com/107410852/215768395-529b2adf-9a94-4925-bd5f-50c404ddb7cc.png)
+
+The best-performing model was able to predict category of white blood cells far better than random chance (55.1 and 25 %, respectively). However, there is still room for improvement, and as such there are still other approaches which could be employed. One such approach would be to further optimise the batch size and learning rate. Another would be to explore decreasing overfitting by examining the effect of number of epochs used to train, or utilising dropout approaches. Changes to the kernel size and/or adding further neural network layers could also be implemented to improve the predictive power. 
 
 
 
